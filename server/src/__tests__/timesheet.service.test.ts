@@ -2,6 +2,7 @@ import { TimesheetService } from '../services/timesheet.service';
 import { ITimesheetRepository } from '../repositories/interfaces/ITimesheetRepository';
 import { IAllocationRepository } from '../repositories/interfaces/IAllocationRepository';
 import { ISystemConfigRepository } from '../repositories/interfaces/ISystemConfigRepository';
+import { IUserRepository } from '../repositories/interfaces/IUserRepository';
 import { SubmitTimesheetDTO } from '../models/interfaces/Timesheet';
 
 const mockConfig = { max_weekly_hours: 40, llm_provider: 'gemma', llm_api_key: '', scheduler_interval: 1 };
@@ -59,11 +60,17 @@ function makeConfigRepo(overrides = {}): ISystemConfigRepository {
   } as unknown as ISystemConfigRepository;
 }
 
+function makeUserRepo(): IUserRepository {
+  return {
+    findByEmployeeId: jest.fn().mockResolvedValue({ timesheet_frozen: false }),
+  } as unknown as IUserRepository;
+}
+
 function makeService(
   tsOverrides: Partial<ITimesheetRepository> = {},
   allocOverrides: Partial<IAllocationRepository> = {},
 ) {
-  return new TimesheetService(makeTimesheetRepo(tsOverrides), makeAllocationRepo(allocOverrides), makeConfigRepo());
+  return new TimesheetService(makeTimesheetRepo(tsOverrides), makeAllocationRepo(allocOverrides), makeConfigRepo(), makeUserRepo());
 }
 
 describe('TimesheetService — submitTimesheet', () => {

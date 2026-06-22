@@ -3,6 +3,7 @@ import { EmployeeService } from '../services/employee.service';
 import { EmployeeRepository } from '../repositories/implementations/EmployeeRepository';
 import { AllocationRepository } from '../repositories/implementations/AllocationRepository';
 import { UserRepository } from '../repositories/implementations/UserRepository';
+import { TimesheetReminderRepository } from '../repositories/implementations/TimesheetReminderRepository';
 import { sendSuccess, sendError } from '../utils/response';
 import { parseId } from '../utils/parseId';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -10,7 +11,8 @@ import { asyncHandler } from '../utils/asyncHandler';
 const employeeService = new EmployeeService(
   new EmployeeRepository(),
   new AllocationRepository(),
-  new UserRepository()
+  new UserRepository(),
+  new TimesheetReminderRepository()
 );
 
 export class EmployeeController {
@@ -63,5 +65,12 @@ export class EmployeeController {
   removeSkill = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
     await employeeService.removeSkill(parseId(req.params.id), parseId(req.params.skillId));
     sendSuccess(res, { message: 'Skill removed.' });
+  });
+
+  restoreTimesheetAccess = asyncHandler(async (req: Request, res: Response, _next: NextFunction) => {
+    const employeeId = parseId(req.params.id);
+    const restoredBy = req.user!.employeeId!;
+    await employeeService.restoreTimesheetAccess(employeeId, restoredBy);
+    sendSuccess(res, { message: 'Timesheet access restored.' });
   });
 }

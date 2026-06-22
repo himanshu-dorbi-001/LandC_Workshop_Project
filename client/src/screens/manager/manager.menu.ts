@@ -8,7 +8,7 @@ import { showChangePasswordScreen } from '../auth/changePassword.screen';
 import {
   getDashboard, getProjects, getProjectById, getAllocationsByProject,
   createAllocation, endAllocation, getTeamTimesheets,
-  aiSkillMatch, aiRiskSummary, aiTeamMatch,
+  aiSkillMatch, aiRiskSummary, aiTeamMatch, restoreTimesheetAccess,
   RoleRequirement, FilledRole, UnfilledRole,
 } from '../../api/manager.api';
 
@@ -22,18 +22,20 @@ export async function showManagerMenu(): Promise<void> {
     console.log(`  ${C.cyan}[3]${C.reset} Allocations`);
     console.log(`  ${C.cyan}[4]${C.reset} Team Timesheets`);
     console.log(`  ${C.cyan}[5]${C.reset} AI Tools`);
-    console.log(`  ${C.cyan}[6]${C.reset} Change My Password`);
+    console.log(`  ${C.cyan}[6]${C.reset} Restore Timesheet Access`);
+    console.log(`  ${C.cyan}[7]${C.reset} Change My Password`);
     console.log(`  ${C.red}[0]${C.reset} Logout`);
     console.log();
 
-    const choice = await readChoice(6);
+    const choice = await readChoice(7);
     switch (choice) {
-      case 1: await viewDashboard();       break;
-      case 2: await projectSubMenu();      break;
-      case 3: await allocationSubMenu();   break;
-      case 4: await viewTeamTimesheets();  break;
-      case 5: await aiSubMenu();           break;
-      case 6: await showChangePasswordScreen(); break;
+      case 1: await viewDashboard();              break;
+      case 2: await projectSubMenu();             break;
+      case 3: await allocationSubMenu();          break;
+      case 4: await viewTeamTimesheets();         break;
+      case 5: await aiSubMenu();                  break;
+      case 6: await restoreTimesheetFlow();       break;
+      case 7: await showChangePasswordScreen();   break;
       case 0: return;
       default:
         printError('Invalid option.');
@@ -287,6 +289,30 @@ async function viewTeamTimesheets(): Promise<void> {
         ]),
       );
     }
+  } catch (err) {
+    printError((err as Error).message);
+  }
+  await pause();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Restore Timesheet Access
+// ─────────────────────────────────────────────────────────────────────────────
+
+async function restoreTimesheetFlow(): Promise<void> {
+  printBanner();
+  printHeader('Restore Timesheet Access');
+
+  printInfo('Unfreeze a team member whose timesheet submission was locked after missed reminders.');
+  console.log();
+
+  const raw = await readLine(`  ${C.cyan}Employee ID: ${C.reset}`);
+  const id  = parseInt(raw, 10);
+  if (isNaN(id)) { printError('Invalid ID.'); await sleep(800); return; }
+
+  try {
+    await restoreTimesheetAccess(id);
+    printSuccess(`Timesheet access restored for employee #${id}.`);
   } catch (err) {
     printError((err as Error).message);
   }

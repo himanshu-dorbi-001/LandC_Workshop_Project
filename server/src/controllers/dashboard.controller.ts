@@ -3,6 +3,7 @@ import { EmployeeService } from '../services/employee.service';
 import { EmployeeRepository } from '../repositories/implementations/EmployeeRepository';
 import { AllocationRepository } from '../repositories/implementations/AllocationRepository';
 import { UserRepository } from '../repositories/implementations/UserRepository';
+import { TimesheetReminderRepository } from '../repositories/implementations/TimesheetReminderRepository';
 import { sendSuccess } from '../utils/response';
 import { parseId } from '../utils/parseId';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -10,7 +11,8 @@ import { asyncHandler } from '../utils/asyncHandler';
 const employeeService = new EmployeeService(
   new EmployeeRepository(),
   new AllocationRepository(),
-  new UserRepository()
+  new UserRepository(),
+  new TimesheetReminderRepository()
 );
 
 export class DashboardController {

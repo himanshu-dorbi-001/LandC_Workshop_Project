@@ -2,6 +2,7 @@ import { EmployeeService } from '../services/employee.service';
 import { IEmployeeRepository } from '../repositories/interfaces/IEmployeeRepository';
 import { IAllocationRepository } from '../repositories/interfaces/IAllocationRepository';
 import { IUserRepository } from '../repositories/interfaces/IUserRepository';
+import { ITimesheetReminderRepository } from '../repositories/interfaces/ITimesheetReminderRepository';
 
 const mockEmp   = { id: 5, full_name: 'Bob Dev', is_active: true };
 const mockSkill = { skill_id: 1, skill_name: 'TypeScript', category: 'Technical', proficiency: 'Expert' };
@@ -35,8 +36,20 @@ function makeUserRepo(): IUserRepository {
   } as unknown as IUserRepository;
 }
 
+function makeReminderRepo(): ITimesheetReminderRepository {
+  return {
+    findByEmployeeAndWeek: jest.fn().mockResolvedValue(null),
+    findPendingForWeek:    jest.fn().mockResolvedValue([]),
+    upsert:                jest.fn().mockResolvedValue({}),
+    setReminder1Sent:      jest.fn().mockResolvedValue(undefined),
+    setReminder2Sent:      jest.fn().mockResolvedValue(undefined),
+    setFrozen:             jest.fn().mockResolvedValue(undefined),
+    setUnfrozen:           jest.fn().mockResolvedValue(undefined),
+  } as unknown as ITimesheetReminderRepository;
+}
+
 function makeService(empOverrides: Partial<IEmployeeRepository> = {}) {
-  return new EmployeeService(makeEmpRepo(empOverrides), makeAllocRepo(), makeUserRepo());
+  return new EmployeeService(makeEmpRepo(empOverrides), makeAllocRepo(), makeUserRepo(), makeReminderRepo());
 }
 
 describe('EmployeeService — queries', () => {

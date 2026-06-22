@@ -163,3 +163,9 @@ export async function aiRiskSummary(payload: RiskSummaryPayload): Promise<string
 export async function aiTeamMatch(payload: TeamMatchPayload): Promise<TeamMatchResult> {
   return apiCall<TeamMatchResult>('POST', '/api/manager/ai/team-match', payload, CONFIG.AI_REQUEST_TIMEOUT_MS);
 }
+
+// ── Employee actions ──────────────────────────────────────────────────────────
+
+export async function restoreTimesheetAccess(employeeId: number): Promise<void> {
+  await apiCall('PUT', `/api/manager/employees/${employeeId}/restore-timesheet`);
+}

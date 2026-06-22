@@ -129,3 +129,89 @@ export function buildManagerFreezeEmail(params: {
     </div>`;
   return { subject, html };
 }
+
+// ── Project At-Risk ────────────────────────────────────────────────────────────
+
+export function buildAtRiskEmail(params: {
+  managerName:    string;
+  projectName:    string;
+  endDate:        string;
+  overdueCount:   number;
+  milestones:     { name: string; due_date: string; status: string }[];
+  benchEmployees: { name: string; skills: string }[];
+  aiSummary:      string | null;
+}): { subject: string; html: string } {
+  const { managerName, projectName, endDate, overdueCount, milestones, benchEmployees, aiSummary } = params;
+
+  const subject = `[PRM] Project At Risk — ${projectName}`;
+
+  const milestoneRows = milestones.map(m =>
+    `<tr>
+      <td style="padding:4px 8px;border:1px solid #ddd">${m.name}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd">${m.due_date?.slice(0, 10) ?? '—'}</td>
+      <td style="padding:4px 8px;border:1px solid #ddd;color:${m.status === 'DONE' ? '#27ae60' : '#c0392b'}">${m.status}</td>
+    </tr>`
+  ).join('');
+
+  const benchRows = benchEmployees.length > 0
+    ? benchEmployees.map(e =>
+        `<tr>
+          <td style="padding:4px 8px;border:1px solid #ddd">${e.name}</td>
+          <td style="padding:4px 8px;border:1px solid #ddd">${e.skills || '—'}</td>
+        </tr>`
+      ).join('')
+    : `<tr><td colspan="2" style="padding:4px 8px;color:#7f8c8d">No bench employees available at this time.</td></tr>`;
+
+  const aiBlock = aiSummary
+    ? `<h3 style="color:#2c3e50">AI Risk Analysis</h3>
+       <p style="background:#fef9e7;padding:12px;border-left:4px solid #f39c12;border-radius:4px">${aiSummary}</p>`
+    : '';
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:680px">
+      <h2 style="color:#c0392b">⚠️ Project Health Alert: AT RISK</h2>
+      <p>Hi <strong>${managerName}</strong>,</p>
+      <p>The automated health check has marked <strong>${projectName}</strong> as
+         <span style="color:#c0392b;font-weight:bold">AT RISK</span>.</p>
+
+      <h3 style="color:#2c3e50">Project Details</h3>
+      <table style="border-collapse:collapse;width:100%">
+        <tr><td style="padding:4px 8px;font-weight:bold;width:40%">Project</td>
+            <td style="padding:4px 8px">${projectName}</td></tr>
+        <tr><td style="padding:4px 8px;font-weight:bold">End Date</td>
+            <td style="padding:4px 8px">${endDate?.slice(0, 10) ?? '—'}</td></tr>
+        <tr><td style="padding:4px 8px;font-weight:bold">Health Status</td>
+            <td style="padding:4px 8px;color:#c0392b;font-weight:bold">AT RISK</td></tr>
+        <tr><td style="padding:4px 8px;font-weight:bold">Overdue Milestones</td>
+            <td style="padding:4px 8px">${overdueCount}</td></tr>
+      </table>
+
+      <h3 style="color:#2c3e50">Milestones</h3>
+      <table style="border-collapse:collapse;width:100%">
+        <tr style="background:#f2f3f4">
+          <th style="padding:4px 8px;border:1px solid #ddd;text-align:left">Milestone</th>
+          <th style="padding:4px 8px;border:1px solid #ddd;text-align:left">Due Date</th>
+          <th style="padding:4px 8px;border:1px solid #ddd;text-align:left">Status</th>
+        </tr>
+        ${milestoneRows}
+      </table>
+
+      ${aiBlock}
+
+      <h3 style="color:#2c3e50">Available Employees (On Bench)</h3>
+      <p style="color:#7f8c8d;font-size:13px">These employees are currently unallocated and may be able to help.</p>
+      <table style="border-collapse:collapse;width:100%">
+        <tr style="background:#f2f3f4">
+          <th style="padding:4px 8px;border:1px solid #ddd;text-align:left">Name</th>
+          <th style="padding:4px 8px;border:1px solid #ddd;text-align:left">Skills</th>
+        </tr>
+        ${benchRows}
+      </table>
+
+      <p style="margin-top:24px;color:#7f8c8d;font-size:12px">
+        This is an automated alert from the PRM Tool scheduler. Log in to take action.
+      </p>
+    </div>`;
+
+  return { subject, html };
+}

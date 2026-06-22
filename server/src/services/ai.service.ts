@@ -5,7 +5,7 @@ import { IAllocationRepository } from '../repositories/interfaces/IAllocationRep
 import { IProjectRepository } from '../repositories/interfaces/IProjectRepository';
 import { ITimesheetRepository } from '../repositories/interfaces/ITimesheetRepository';
 import { EmployeeSkillDetail } from '../models/interfaces/Employee';
-import { NotFoundError, ConfigurationError } from '../exceptions';
+import { NotFoundError, ConfigurationError, ValidationError } from '../exceptions';
 
 // ── Skill Match ───────────────────────────────────────────────────────────────
 

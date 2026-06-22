@@ -6,6 +6,7 @@ import { AllocationController } from '../controllers/allocation.controller';
 import { ProjectController } from '../controllers/project.controller';
 import { TimesheetController } from '../controllers/timesheet.controller';
 import { AIController } from '../controllers/ai.controller';
+import { EmployeeController } from '../controllers/employee.controller';
 
 const router = Router();
 router.use(authenticate);   // verify JWT on every /api/manager/* request
@@ -15,6 +16,7 @@ const allocation = new AllocationController();
 const project    = new ProjectController();
 const timesheet  = new TimesheetController();
 const ai         = new AIController();
+const employee   = new EmployeeController();
 
 // ── Resource dashboard ────────────────────────────────────────
 router.get('/dashboard',               requirePermission('dashboard:read'),              dashboard.getResourceDashboard.bind(dashboard));
@@ -31,6 +33,9 @@ router.get('/projects/:id', requirePermission('project:read_all'), project.getPr
 
 // ── Timesheets ────────────────────────────────────────────────
 router.get('/timesheets', requirePermission('timesheet:read_team'), timesheet.getTeamTimesheets.bind(timesheet));
+
+// ── Employee actions ──────────────────────────────────────────
+router.put('/employees/:id/restore-timesheet', requirePermission('employee:read_all'), employee.restoreTimesheetAccess.bind(employee));
 
 // ── AI assistant ──────────────────────────────────────────────
 router.post('/ai/skill-match',  requirePermission('ai:skill_match'),  ai.skillMatch.bind(ai));

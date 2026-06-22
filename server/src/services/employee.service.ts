@@ -5,13 +5,15 @@ import {
   EmployeeWithDetails, EmployeeSkillDetail,
   UpdateEmployeeDTO, AddSkillDTO, UpdateSkillDTO,
 } from '../models/interfaces/Employee';
-import { NotFoundError, ValidationError } from '../exceptions';
+import { ITimesheetReminderRepository } from '../repositories/interfaces/ITimesheetReminderRepository';
+import { NotFoundError, ValidationError, ForbiddenError } from '../exceptions';
 
 export class EmployeeService {
   constructor(
     private employeeRepo:   IEmployeeRepository,
     private allocationRepo: IAllocationRepository,
-    private userRepo:       IUserRepository
+    private userRepo:       IUserRepository,
+    private reminderRepo:   ITimesheetReminderRepository
   ) {}
 
   async getAllEmployees(): Promise<EmployeeWithDetails[]> {
@@ -73,4 +75,30 @@ export class EmployeeService {
     if (!skills.find(s => s.skill_id === skillId)) throw new NotFoundError('Skill not found for this employee');
     await this.employeeRepo.removeSkill(employeeId, skillId);
   }
+
+  async restoreTimesheetAccess(employeeId: number, restoredBy: number): Promise<void> {
+    const emp = await this.employeeRepo.findById(employeeId);
+    if (!emp) throw new NotFoundError('Employee not found');
+
+    const account = await this.userRepo.findByEmployeeId(employeeId);
+    if (!account?.timesheet_frozen) throw new ForbiddenError('Timesheet access is not currently frozen for this employee');
+
+    await this.userRepo.setTimesheetFrozen(employeeId, false);
+
+    // Record the unfreeze on the most recent frozen reminder row
+    const today = new Date().toISOString().split('T')[0];
+    const lastMonday = getLastMonday(today);
+    const reminder = await this.reminderRepo.findByEmployeeAndWeek(employeeId, lastMonday);
+    if (reminder?.frozen_at) {
+      await this.reminderRepo.setUnfrozen(employeeId, lastMonday, new Date(), restoredBy);
+    }
+  }
+}
+
+function getLastMonday(fromDate: string): string {
+  const d = new Date(fromDate);
+  const day = d.getDay();
+  const diff = day === 0 ? 6 : day - 1;
+  d.setDate(d.getDate() - diff - 7);
+  return d.toISOString().split('T')[0];
 }
